@@ -1,0 +1,28 @@
+Vagrant.configure("2") do |config|
+	config.vm.provider :libvirt do |libvirt|
+	  libvirt.driver = "kvm"  # Define o driver KVM
+	  #libvirt.machine_type = "q35"
+      #libvirt.qemu_use_session = true
+      #libvirt.loader = "/usr/share/OVMF/OVMF_CODE.fd"
+      #libvirt.nvram = "/var/lib/libvirt/qemu/nvram/${vm.vm.hostname}_UEFI_VARS.fd"
+	  #libvirt.host = "localhost"  # Define o host como localhost
+	  #libvirt.connect_via_ssh = false  # Define a conexão como local
+	  libvirt.storage_pool_name = "Storage"
+	  libvirt.memory = 4098  # Define a quantidade de memória RAM (em MB)
+	  libvirt.cpus = 4  # Define a quantidade de CPUs virtuais
+	  libvirt.cpu_mode = "host-passthrough"  # ou libvirt.cpu_model = "nome_do_modelo"
+
+	end
+	# Configurações da máquina virtual
+	config.vm.define "ZABBIX" do |vm|
+	  vm.vm.box = "centos/8"  # Utiliza a box CentOS 8
+	  vm.vm.hostname = "ZABBIX"  # Define o nome do host
+	  vm.vm.network :public_network, type: "bridge", dev: "nm-bridge", ip: "192.168.1.202" # Configuração de rede privada
+	  #vm.ssh.username = "vagrant"
+      #vm.ssh.password = "vagrant"
+	  vm.vm.synced_folder ".", "/vagrant", disabled: true  # Desabilita a pasta compartilhada
+	  # Configuração de provisionamento
+	  vm.vm.provision "shell", path: "./POST_INSTALL-PGSQL.sh"
+	  #vm.vm.provision "file", source: "./POST_INSTALL-PGSQL.sh", destination: "/home/vagrant/POST_INSTALL-PGSQL.sh"
+	end
+end

@@ -1,0 +1,49 @@
+Vagrant.configure("2") do |config|
+	(1..2).each do |i| 
+		config.vm.define "robot0#{i}" do |docker|
+			docker.vm.box = "ubuntu/bionic64"
+			docker.vm.network "public_network", bridged: "Realtek Gaming GBE Family Controller", ip: "192.168.1.20#{i}"
+			docker.vm.provision "shell", inline: <<-SHELL
+						sudo hostnamectl set-hostname robot0#{i} && \						
+						sudo apt update -y && \
+						sudo curl -fsSL https://get.docker.com | bash && sudo usermod -aG docker vagrant && \            
+						sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+						sudo echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list && \
+						sudo apt-get update && apt-get install -y kubelet kubeadm kubectl glusterfs-server wget perl iotop net-tools htop git policycoreutils selinux-utils selinux-basics && \
+						sudo sed -i "s/cgroup-driver=systemd/cgroup-driver=cgroupfs/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf && \
+						sudo systemctl daemon-reload && systemctl enable kubelet docker && systemctl restart kubelet && \
+						sudo service ufw stop && systemctl disable ufw && \
+						sudo sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config && \
+						sudo reboot					
+						SHELL
+					config.vm.provider "virtualbox" do |v|
+						v.memory = "1024"
+						v.cpus = "4"
+						#v.name = "docker"
+					end
+		end
+	end
+
+		config.vm.define "robot03" do |docker|
+				docker.vm.box = "ubuntu/bionic64"
+				docker.vm.network "public_network", bridged: "Realtek Gaming GBE Family Controller", ip: "192.168.1.203"
+				docker.vm.provision "shell", inline: <<-SHELL
+							sudo hostnamectl set-hostname robot03 && \						
+							sudo apt update -y && \
+							sudo curl -fsSL https://get.docker.com | bash && sudo usermod -aG docker vagrant && \            
+							sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+							sudo echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list && \
+							sudo apt-get update && apt-get install -y kubelet kubeadm kubectl glusterfs-server wget perl iotop net-tools htop git policycoreutils selinux-utils selinux-basics && \
+							sudo sed -i "s/cgroup-driver=systemd/cgroup-driver=cgroupfs/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf && \
+							sudo systemctl daemon-reload && systemctl enable kubelet docker && systemctl restart kubelet && \
+							sudo service ufw stop && systemctl disable ufw && \
+							sudo sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config && \
+							sudo reboot						
+							SHELL
+						config.vm.provider "virtualbox" do |v|
+							v.memory = "1024"
+							v.cpus = "4"
+							#v.name = "docker"
+						end
+		end
+end

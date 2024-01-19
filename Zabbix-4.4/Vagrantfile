@@ -1,0 +1,13 @@
+Vagrant.configure("2") do |config|
+		config.vm.define "zabbix-44" do |config|
+			config.vm.box = "centos/7"
+			config.vm.network "public_network"
+			config.vm.provision "shell", path: "./script01.sh"
+			#config.vm.provision "shell", path: "./script02.sh"
+					config.vm.provider "hyperv" do |h|
+						h.memory = "1024"
+						h.cpus = "2"
+						h.vmname = "zabbix-44"
+					end
+			end
+end

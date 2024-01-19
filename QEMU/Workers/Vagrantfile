@@ -1,0 +1,45 @@
+Vagrant.configure("2") do |config|
+	(1..2).each do |i|
+		config.vm.provider :libvirt do |libvirt|
+		libvirt.driver = "kvm"  # Define o driver KVM
+		#libvirt.machine_type = "q35"
+		#libvirt.qemu_use_session = true
+		#libvirt.loader = "/usr/share/OVMF/OVMF_CODE.fd"
+		#libvirt.nvram = "/var/lib/libvirt/qemu/nvram/BALEIAAZUL_UEFI_VARS.fd"
+		#libvirt.host = "localhost"  # Define o host como localhost
+		#libvirt.connect_via_ssh = false  # Define a conexão como local
+		libvirt.storage_pool_name = "Storage"
+		libvirt.memory = 1024  # Define a quantidade de memória RAM (em MB)
+		libvirt.cpus = 4  # Define a quantidade de CPUs virtuais
+		libvirt.cpu_mode = "host-passthrough"  # ou libvirt.cpu_model = "nome_do_modelo"
+
+		end
+	# Configurações da máquina virtual
+	config.vm.define "Worker0#{i}" do |vm|
+	  vm.vm.box = "centos/7"  # Utiliza a box CentOS 8
+	  vm.vm.hostname = "Worker0#{i}"  # Define o nome do host
+	  vm.vm.network :public_network, type: "bridge", dev: "virbr1" # Configuração de rede privada
+	  #vm.ssh.username = "vagrant"
+      #vm.ssh.password = "vagrant"  
+	  vm.vm.synced_folder ".", "/vagrant", disabled: true  # Desabilita a pasta compartilhada
+	  # Configuração de provisionamento
+	  #vm.vm.provision "file", source: "./script01.sh", destination: "/home/vagrant/script01.sh"
+	  vm.vm.provision "shell", inline: <<-SHELL
+		### AJEITANDO A CASA ###
+		sudo hostnamectl set-hostname WORKER#{i}
+		sudo yum update -y 
+		### INSTALANDO PACOTES ESSENCIAIS ###
+		sudo yum install epel-release nginx -y
+		### CONFIGURANDO HTML ###
+		sudo echo "<p>WORKER0#{i}</p>" > /usr/share/nginx/html/index.html
+		### CONFIG FINAL ###
+		sudo systemctl enable --now firewalld nginx
+		sudo sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
+		sudo sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/sysconfig/selinux
+		sudo firewall-cmd --permanent --zone=public --add-service={http,ssh}
+		sudo firewall-cmd --reload
+		sudo shutdown -r now
+	  SHELL
+	  end
+	end
+end

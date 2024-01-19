@@ -1,0 +1,3 @@
+ServerSignature Off \n ServerTokens Prod
+ServerSignature Off\n ServerTokens Prod
+ServerSignature Off \nServerTokens Prod
